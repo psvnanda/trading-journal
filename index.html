@@ -14,8 +14,14 @@
             padding: 1rem;
         }
         .container { max-width: 1280px; margin: 0 auto; }
+        .auth-screen { text-align: center; padding: 4rem 1rem; }
+        .auth-btn { padding: 1rem 2rem; background: #2563eb; color: white; border: none; border-radius: 0.5rem; font-size: 1rem; cursor: pointer; font-weight: 600; margin: 0.5rem; }
+        .auth-btn:hover { background: #1d4ed8; }
+        .user-bar { position: absolute; top: 1rem; right: 1rem; color: #94a3b8; font-size: 0.875rem; display: flex; align-items: center; gap: 1rem; }
+        .sign-out { background: #ef4444; color: white; border: none; padding: 0.5rem 1rem; border-radius: 0.375rem; cursor: pointer; font-size: 0.875rem; }
         h1 { font-size: 2rem; font-weight: 700; color: white; margin-bottom: 0.5rem; margin-top: 2rem; }
         p { color: #94a3b8; }
+        .banner { background: rgba(37, 99, 235, 0.2); border: 1px solid rgba(37, 99, 235, 0.5); color: #60a5fa; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1.5rem; font-size: 0.875rem; }
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
         .stat-card { background: rgba(55, 65, 81, 0.5); border: 1px solid rgb(71, 85, 105); padding: 1rem; border-radius: 0.5rem; }
         .stat-label { color: #94a3b8; font-size: 0.875rem; margin-bottom: 0.25rem; }
@@ -45,211 +51,415 @@
         th { padding: 0.75rem; text-align: left; color: #cbd5e1; font-weight: 600; }
         td { padding: 0.75rem; border-bottom: 1px solid rgb(71, 85, 105); }
         tbody tr:hover { background: rgba(55, 65, 81, 0.3); }
-        .symbol { font-weight: 700; color: white; }
         .badge { background: rgba(55, 65, 81, 0.5); padding: 0.25rem 0.5rem; border-radius: 0.375rem; font-size: 0.75rem; display: inline-block; }
+        .badge-call { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
+        .badge-put { background: rgba(248, 113, 113, 0.2); color: #f87171; }
         .green { color: #4ade80; font-weight: 700; }
         .red { color: #f87171; font-weight: 700; }
         .delete-btn { background: none; border: none; color: #f87171; cursor: pointer; font-size: 1.125rem; }
         .delete-btn:hover { color: #fb7185; }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div id="authScreen" class="auth-screen">
         <h1>Trading Journal</h1>
-        <p>Track every trade. Master your edge.</p>
-
-        <div id="stats" class="stats-grid" style="display:none;"></div>
-
-        <div class="tabs">
-            <button class="tab-btn active" onclick="showTab('entry')">+ New Trade</button>
-            <button class="tab-btn" onclick="showTab('journal')">Journal (<span id="trade-count">0</span>)</button>
-            <button class="tab-btn export" onclick="exportCSV()">📥 Export CSV</button>
+        <p style="margin-bottom: 2rem;">Track stocks & options. Cloud-synced via Supabase.</p>
+        <div>
+            <button class="auth-btn" onclick="signUpEmail()">📧 Sign Up (Email)</button>
+            <button class="auth-btn" onclick="signInEmail()">🔐 Sign In (Email)</button>
         </div>
+        <p id="authMsg" style="margin-top: 1rem; color: #60a5fa;"></p>
+    </div>
 
-        <div id="entry" class="content active">
-            <div class="form-container">
-                <form onsubmit="addTrade(event)">
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label>Date</label>
-                            <input type="date" id="date" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Symbol</label>
-                            <input type="text" id="symbol" placeholder="SPY, QQQ" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Setup Type</label>
-                            <select id="setupType">
-                                <option value="scalp">Scalp (0DTE)</option>
-                                <option value="swing">Swing</option>
-                                <option value="gap">Gap Trade</option>
-                                <option value="breakout">Breakout</option>
-                                <option value="pullback">Pullback</option>
-                                <option value="vwap">VWAP</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Entry Time</label>
-                            <input type="time" id="entryTime" value="09:30">
-                        </div>
-                        <div class="form-group">
-                            <label>Entry Price</label>
-                            <input type="number" id="entryPrice" step="0.01" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Exit Time</label>
-                            <input type="time" id="exitTime" value="16:00">
-                        </div>
-                        <div class="form-group">
-                            <label>Exit Price</label>
-                            <input type="number" id="exitPrice" step="0.01" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Quantity</label>
-                            <input type="number" id="quantity" step="1" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Platform</label>
-                            <select id="platform">
-                                <option value="robinhood">Robinhood</option>
-                                <option value="webull">Webull</option>
-                                <option value="thinkorswim">ThinkOrSwim</option>
-                                <option value="other">Other</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Notes</label>
-                        <textarea id="notes" placeholder="What did you notice?"></textarea>
-                    </div>
-                    <button type="submit" class="submit-btn">Save Trade</button>
-                </form>
+    <div id="appScreen" style="display:none;">
+        <div class="user-bar" id="userBar"></div>
+        <div class="container">
+            <h1>Trading Journal</h1>
+            <p>Track every trade. Master your edge.</p>
+            
+            <div class="banner">
+                ☁️ Cloud-synced to Supabase. Access from any device. Your trades are secure.
             </div>
-        </div>
 
-        <div id="journal" class="content">
-            <div class="journal-container">
-                <div id="journal-content"></div>
+            <div id="stats" class="stats-grid" style="display:none;"></div>
+
+            <div class="tabs">
+                <button class="tab-btn active" onclick="showTab('entry')">+ New Trade</button>
+                <button class="tab-btn" onclick="showTab('journal')">Journal (<span id="trade-count">0</span>)</button>
+                <button class="tab-btn export" onclick="exportCSV()">📥 Export CSV</button>
+            </div>
+
+            <div id="entry" class="content active">
+                <div class="form-container">
+                    <form onsubmit="addTrade(event)">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Date</label>
+                                <input type="date" id="date" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Asset Type</label>
+                                <select id="assetType" onchange="updateFormFields()">
+                                    <option value="stock">Stock</option>
+                                    <option value="call">Call Option</option>
+                                    <option value="put">Put Option</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Symbol</label>
+                                <input type="text" id="symbol" placeholder="SPY, QQQ" required>
+                            </div>
+                            <div class="form-group hidden" id="strikeGroup">
+                                <label>Strike Price</label>
+                                <input type="number" id="strikePrice" step="0.01">
+                            </div>
+                            <div class="form-group hidden" id="expiryGroup">
+                                <label>Expiration Date</label>
+                                <input type="date" id="expiryDate">
+                            </div>
+                            <div class="form-group">
+                                <label>Setup Type</label>
+                                <select id="setupType">
+                                    <option value="scalp">Scalp (0DTE)</option>
+                                    <option value="swing">Swing</option>
+                                    <option value="gap">Gap Trade</option>
+                                    <option value="breakout">Breakout</option>
+                                    <option value="pullback">Pullback</option>
+                                    <option value="vwap">VWAP</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Entry Time</label>
+                                <input type="time" id="entryTime" value="09:30">
+                            </div>
+                            <div class="form-group">
+                                <label>Entry Price</label>
+                                <input type="number" id="entryPrice" step="0.01" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Exit Time</label>
+                                <input type="time" id="exitTime" value="16:00">
+                            </div>
+                            <div class="form-group">
+                                <label>Exit Price</label>
+                                <input type="number" id="exitPrice" step="0.01" required>
+                            </div>
+                            <div class="form-group">
+                                <label id="qtyLabel">Quantity (Shares)</label>
+                                <input type="number" id="quantity" step="1" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Platform</label>
+                                <select id="platform">
+                                    <option value="robinhood">Robinhood</option>
+                                    <option value="webull">Webull</option>
+                                    <option value="thinkorswim">ThinkOrSwim</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Notes</label>
+                            <textarea id="notes" placeholder="What did you notice?"></textarea>
+                        </div>
+                        <button type="submit" class="submit-btn">Save Trade</button>
+                    </form>
+                </div>
+            </div>
+
+            <div id="journal" class="content">
+                <div class="journal-container">
+                    <div id="journal-content"></div>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        let trades = JSON.parse(localStorage.getItem('trades')) || [];
+        const SUPABASE_URL = 'https://etfyqcyansquhhmytrxy.supabase.co'
+        const SUPABASE_KEY = 'sb_publishable_IG9Ii3uH1Zu-kQwVGNwYlw_RkbYSZz_'
 
-        function setToday() {
-            document.getElementById('date').valueAsDate = new Date();
+        let currentUser = null
+        let trades = []
+        let sessionToken = localStorage.getItem('sb_session')
+        let userId = localStorage.getItem('sb_user_id')
+
+        function showAuthScreen() {
+            document.getElementById('authScreen').style.display = 'block'
+            document.getElementById('appScreen').style.display = 'none'
         }
 
-        function showTab(tab) {
-            document.querySelectorAll('.content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-            document.getElementById(tab).classList.add('active');
-            document.querySelector(`[onclick="showTab('${tab}')"]`).classList.add('active');
-            if (tab === 'journal') renderJournal();
+        function showAppScreen() {
+            document.getElementById('authScreen').style.display = 'none'
+            document.getElementById('appScreen').style.display = 'block'
+            setToday()
+            loadTrades()
         }
 
-        function addTrade(e) {
-            e.preventDefault();
-            const entry = parseFloat(document.getElementById('entryPrice').value);
-            const exit = parseFloat(document.getElementById('exitPrice').value);
-            const qty = parseFloat(document.getElementById('quantity').value);
-            const pnl = (exit - entry) * qty;
-            const pnlPercent = ((exit - entry) / entry * 100).toFixed(2);
+        async function signUpEmail() {
+            const email = prompt('Enter email:')
+            if (!email) return
+            const password = prompt('Enter password (min 6 chars):')
+            if (!password || password.length < 6) {
+                alert('Password must be at least 6 characters')
+                return
+            }
+
+            try {
+                const res = await fetch(`${SUPABASE_URL}/auth/v1/signup`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY },
+                    body: JSON.stringify({ email, password })
+                })
+                const data = await res.json()
+                if (data.user) {
+                    currentUser = data.user
+                    userId = data.user.id
+                    sessionToken = data.session.access_token
+                    localStorage.setItem('sb_session', sessionToken)
+                    localStorage.setItem('sb_user_id', userId)
+                    document.getElementById('userBar').innerHTML = `<span>${email}</span><button class="sign-out" onclick="signOut()">Sign out</button>`
+                    showAppScreen()
+                } else {
+                    alert('Sign up failed: ' + (data.message || 'Unknown error'))
+                }
+            } catch (err) {
+                alert('Error: ' + err.message)
+            }
+        }
+
+        async function signInEmail() {
+            const email = prompt('Enter email:')
+            if (!email) return
+            const password = prompt('Enter password:')
+            if (!password) return
+
+            try {
+                const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY },
+                    body: JSON.stringify({ email, password })
+                })
+                const data = await res.json()
+                if (data.access_token) {
+                    currentUser = data.user
+                    userId = data.user.id
+                    sessionToken = data.access_token
+                    localStorage.setItem('sb_session', sessionToken)
+                    localStorage.setItem('sb_user_id', userId)
+                    document.getElementById('userBar').innerHTML = `<span>${email}</span><button class="sign-out" onclick="signOut()">Sign out</button>`
+                    showAppScreen()
+                } else {
+                    alert('Sign in failed: ' + (data.error_description || 'Invalid credentials'))
+                }
+            } catch (err) {
+                alert('Error: ' + err.message)
+            }
+        }
+
+        function signOut() {
+            currentUser = null
+            sessionToken = null
+            userId = null
+            localStorage.removeItem('sb_session')
+            localStorage.removeItem('sb_user_id')
+            trades = []
+            showAuthScreen()
+        }
+
+        function updateFormFields() {
+            const assetType = document.getElementById('assetType').value
+            document.getElementById('strikeGroup').classList.toggle('hidden', assetType === 'stock')
+            document.getElementById('expiryGroup').classList.toggle('hidden', assetType === 'stock')
+            document.getElementById('qtyLabel').textContent = assetType === 'stock' ? 'Quantity (Shares)' : 'Quantity (Contracts)'
+        }
+
+        async function loadTrades() {
+            if (!sessionToken || !userId) return
+            try {
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/trades?user_id=eq.${userId}&order=date.desc`, {
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${sessionToken}`
+                    }
+                })
+                const data = await res.json()
+                trades = Array.isArray(data) ? data : []
+                document.getElementById('trade-count').textContent = trades.length
+                renderJournal()
+            } catch (err) {
+                console.error('Load error:', err)
+            }
+        }
+
+        async function addTrade(e) {
+            e.preventDefault()
+            if (!sessionToken || !userId) {
+                alert('Please sign in first')
+                return
+            }
+
+            const entry = parseFloat(document.getElementById('entryPrice').value)
+            const exit = parseFloat(document.getElementById('exitPrice').value)
+            const qty = parseFloat(document.getElementById('quantity').value)
+            const assetType = document.getElementById('assetType').value
+            const multiplier = (assetType !== 'stock') ? 100 : 1
+            const pnl = (exit - entry) * qty * multiplier
+            const pnlPercent = ((exit - entry) / entry * 100).toFixed(2)
 
             const trade = {
-                id: Date.now(),
+                user_id: userId,
                 date: document.getElementById('date').value,
+                asset_type: assetType,
                 symbol: document.getElementById('symbol').value,
-                entryTime: document.getElementById('entryTime').value,
-                entryPrice: entry,
-                exitTime: document.getElementById('exitTime').value,
-                exitPrice: exit,
+                strike_price: assetType !== 'stock' ? parseFloat(document.getElementById('strikePrice').value) : null,
+                expiry_date: assetType !== 'stock' ? document.getElementById('expiryDate').value : null,
+                entry_time: document.getElementById('entryTime').value,
+                entry_price: entry,
+                exit_time: document.getElementById('exitTime').value,
+                exit_price: exit,
                 quantity: qty,
-                setupType: document.getElementById('setupType').value,
+                setup_type: document.getElementById('setupType').value,
                 notes: document.getElementById('notes').value,
                 platform: document.getElementById('platform').value,
                 pnl: parseFloat(pnl.toFixed(2)),
-                pnlPercent: parseFloat(pnlPercent),
+                pnl_percent: parseFloat(pnlPercent),
                 won: pnl > 0
-            };
+            }
 
-            trades.unshift(trade);
-            localStorage.setItem('trades', JSON.stringify(trades));
-            
-            e.target.reset();
-            setToday();
-            document.getElementById('trade-count').textContent = trades.length;
-            showTab('journal');
+            try {
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/trades`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${sessionToken}`
+                    },
+                    body: JSON.stringify(trade)
+                })
+                if (res.ok) {
+                    e.target.reset()
+                    setToday()
+                    await loadTrades()
+                    showTab('journal')
+                } else {
+                    const error = await res.json()
+                    alert('Error saving trade: ' + (error.message || res.statusText))
+                }
+            } catch (err) {
+                alert('Error: ' + err.message)
+            }
         }
 
-        function deleteTrade(id) {
-            trades = trades.filter(t => t.id !== id);
-            localStorage.setItem('trades', JSON.stringify(trades));
-            document.getElementById('trade-count').textContent = trades.length;
-            renderJournal();
+        async function deleteTrade(id) {
+            if (!sessionToken) return
+            if (!confirm('Delete this trade?')) return
+
+            try {
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/trades?id=eq.${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${sessionToken}`
+                    }
+                })
+                if (res.ok) {
+                    await loadTrades()
+                } else {
+                    alert('Error deleting')
+                }
+            } catch (err) {
+                alert('Error: ' + err.message)
+            }
+        }
+
+        function getAssetDisplay(trade) {
+            if (trade.asset_type === 'stock') {
+                return `<span class="badge">${trade.symbol}</span>`
+            } else {
+                const type = trade.asset_type === 'call' ? 'C' : 'P'
+                const badgeClass = trade.asset_type === 'call' ? 'badge-call' : 'badge-put'
+                return `<span class="badge ${badgeClass}">${trade.symbol} ${trade.strike_price} ${type}</span>`
+            }
         }
 
         function renderJournal() {
-            const container = document.getElementById('journal-content');
+            const container = document.getElementById('journal-content')
             if (trades.length === 0) {
-                container.innerHTML = '<div class="empty"><p>No trades yet. Start logging!</p></div>';
-                document.getElementById('stats').style.display = 'none';
-                return;
+                container.innerHTML = '<div class="empty"><p>No trades yet. Start logging!</p></div>'
+                document.getElementById('stats').style.display = 'none'
+                return
             }
 
-            const wins = trades.filter(t => t.won).length;
-            const winRate = ((wins / trades.length) * 100).toFixed(1);
-            const totalPnL = trades.reduce((sum, t) => sum + t.pnl, 0).toFixed(2);
-            const avgPnL = (totalPnL / trades.length).toFixed(2);
-            const bestTrade = Math.max(...trades.map(t => t.pnl)).toFixed(2);
-            const worstTrade = Math.min(...trades.map(t => t.pnl)).toFixed(2);
+            const wins = trades.filter(t => t.won).length
+            const winRate = ((wins / trades.length) * 100).toFixed(1)
+            const totalPnL = trades.reduce((sum, t) => sum + t.pnl, 0).toFixed(2)
+            const avgPnL = (totalPnL / trades.length).toFixed(2)
+            const bestTrade = Math.max(...trades.map(t => t.pnl)).toFixed(2)
+            const worstTrade = Math.min(...trades.map(t => t.pnl)).toFixed(2)
 
             document.getElementById('stats').innerHTML = `
                 <div class="stat-card"><div class="stat-label">Win Rate</div><div class="stat-value">${winRate}%</div><div class="stat-subtext">${wins}W / ${trades.length - wins}L</div></div>
                 <div class="stat-card"><div class="stat-label">Total P&L</div><div class="stat-value ${totalPnL >= 0 ? 'green' : 'red'}">$${totalPnL}</div></div>
                 <div class="stat-card"><div class="stat-label">Avg Trade</div><div class="stat-value ${avgPnL >= 0 ? 'green' : 'red'}">$${avgPnL}</div></div>
                 <div class="stat-card"><div class="stat-label">Best / Worst</div><div class="stat-subtext green">$${bestTrade}</div><div class="stat-subtext red">$${worstTrade}</div></div>
-            `;
-            document.getElementById('stats').style.display = 'grid';
+            `
+            document.getElementById('stats').style.display = 'grid'
 
-            let html = '<div class="table-wrapper"><table><thead><tr><th>Date</th><th>Symbol</th><th>Entry</th><th>Exit</th><th>Qty</th><th>Setup</th><th style="text-align:right;">P&L</th><th>Notes</th><th style="text-align:center;">Delete</th></tr></thead><tbody>';
+            let html = '<div class="table-wrapper"><table><thead><tr><th>Date</th><th>Asset</th><th>Entry</th><th>Exit</th><th>Qty</th><th>Setup</th><th style="text-align:right;">P&L</th><th>Notes</th><th style="text-align:center;">Delete</th></tr></thead><tbody>'
             trades.forEach(t => {
+                const qty = t.asset_type === 'stock' ? `${t.quantity} sh` : `${t.quantity} ct`
                 html += `<tr>
                     <td>${t.date}</td>
-                    <td class="symbol">${t.symbol}</td>
-                    <td>$${t.entryPrice.toFixed(2)} @ ${t.entryTime}</td>
-                    <td>$${t.exitPrice.toFixed(2)} @ ${t.exitTime}</td>
-                    <td>${t.quantity}</td>
-                    <td><span class="badge">${t.setupType}</span></td>
-                    <td style="text-align:right;" class="${t.pnl >= 0 ? 'green' : 'red'}">$${t.pnl.toFixed(2)} (${t.pnlPercent}%)</td>
+                    <td>${getAssetDisplay(t)}</td>
+                    <td>$${t.entry_price.toFixed(2)} @ ${t.entry_time}</td>
+                    <td>$${t.exit_price.toFixed(2)} @ ${t.exit_time}</td>
+                    <td>${qty}</td>
+                    <td><span class="badge">${t.setup_type}</span></td>
+                    <td style="text-align:right;" class="${t.pnl >= 0 ? 'green' : 'red'}">$${t.pnl.toFixed(2)} (${t.pnl_percent}%)</td>
                     <td style="font-size:0.75rem;color:#94a3b8;max-width:100px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${t.notes}</td>
-                    <td style="text-align:center;"><button class="delete-btn" onclick="deleteTrade(${t.id})">🗑️</button></td>
-                </tr>`;
-            });
-            html += '</tbody></table></div>';
-            container.innerHTML = html;
+                    <td style="text-align:center;"><button class="delete-btn" onclick="deleteTrade('${t.id}')">🗑️</button></td>
+                </tr>`
+            })
+            html += '</tbody></table></div>'
+            container.innerHTML = html
         }
 
         function exportCSV() {
             if (trades.length === 0) {
-                alert('No trades to export');
-                return;
+                alert('No trades to export')
+                return
             }
-            const headers = ['Date', 'Symbol', 'Entry Time', 'Entry Price', 'Exit Time', 'Exit Price', 'Quantity', 'P&L', 'P&L %', 'Setup', 'Platform', 'Notes'];
-            const rows = trades.map(t => [t.date, t.symbol, t.entryTime, t.entryPrice, t.exitTime, t.exitPrice, t.quantity, t.pnl, t.pnlPercent, t.setupType, t.platform, t.notes]);
-            const csv = [headers, ...rows].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `trading-journal-${new Date().toISOString().split('T')[0]}.csv`;
-            a.click();
+            const headers = ['Date', 'Asset Type', 'Symbol', 'Strike', 'Expiry', 'Entry Time', 'Entry Price', 'Exit Time', 'Exit Price', 'Quantity', 'P&L', 'P&L %', 'Setup', 'Platform', 'Notes']
+            const rows = trades.map(t => [t.date, t.asset_type, t.symbol, t.strike_price || '', t.expiry_date || '', t.entry_time, t.entry_price, t.exit_time, t.exit_price, t.quantity, t.pnl, t.pnl_percent, t.setup_type, t.platform, t.notes])
+            const csv = [headers, ...rows].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n')
+            const blob = new Blob([csv], { type: 'text/csv' })
+            const url = window.URL.createObjectURL(blob)
+            const a = document.createElement('a')
+            a.href = url
+            a.download = `trading-journal-${new Date().toISOString().split('T')[0]}.csv`
+            a.click()
         }
 
-        setToday();
-        document.getElementById('trade-count').textContent = trades.length;
+        function showTab(tab) {
+            document.querySelectorAll('.content').forEach(el => el.classList.remove('active'))
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'))
+            document.getElementById(tab).classList.add('active')
+            document.querySelector(`[onclick="showTab('${tab}')"]`).classList.add('active')
+            if (tab === 'journal') renderJournal()
+        }
+
+        function setToday() {
+            document.getElementById('date').valueAsDate = new Date()
+        }
+
+        // Check if already logged in
+        if (sessionToken && userId) {
+            showAppScreen()
+        } else {
+            showAuthScreen()
+        }
     </script>
 </body>
 </html>

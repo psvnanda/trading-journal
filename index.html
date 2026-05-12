@@ -3,101 +3,642 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Trading Journal</title>
+    <title>trading journal ⚡</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,800;12..96,900&family=JetBrains+Mono:wght@400;500;700&family=Bungee&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --bg: #0a0612;
+            --bg-2: #16091f;
+            --lime: #c8ff00;
+            --pink: #ff006e;
+            --cyan: #00f0ff;
+            --purple: #9d4edd;
+            --orange: #ff6b35;
+            --yellow: #ffd60a;
+            --white: #fffcf5;
+            --gray: #6b6580;
+            --card: rgba(255, 252, 245, 0.04);
+            --card-border: rgba(255, 252, 245, 0.1);
+            --display: 'Bricolage Grotesque', sans-serif;
+            --mono: 'JetBrains Mono', monospace;
+            --sticker: 'Bungee', sans-serif;
+        }
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html, body { height: 100%; }
-        body { 
-            background: linear-gradient(to bottom right, #0f172a, #1e293b, #0f172a);
-            color: #e2e8f0;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+        body {
+            background: var(--bg);
+            color: var(--white);
+            font-family: var(--mono);
             min-height: 100vh;
-            padding: 1rem;
+            padding: 1.5rem;
+            overflow-x: hidden;
+            position: relative;
         }
-        .container { max-width: 1280px; margin: 0 auto; }
-        .auth-screen { text-align: center; padding: 2rem 1rem; }
-        .auth-form { background: rgba(30, 41, 59, 0.5); border: 1px solid rgb(71, 85, 105); padding: 2rem; border-radius: 0.5rem; max-width: 400px; margin: 2rem auto; }
-        .auth-input { width: 100%; padding: 0.75rem; margin-bottom: 1rem; background: rgb(55, 65, 81); border: 1px solid rgb(71, 85, 105); color: white; border-radius: 0.375rem; font-size: 1rem; }
-        .auth-input::placeholder { color: #94a3b8; }
-        .auth-btn { width: 100%; padding: 0.75rem 1rem; background: #2563eb; color: white; border: none; border-radius: 0.5rem; font-size: 1rem; cursor: pointer; font-weight: 600; margin-bottom: 0.5rem; }
-        .auth-btn:hover:not(:disabled) { background: #1d4ed8; }
-        .auth-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-        .auth-toggle { color: #60a5fa; cursor: pointer; text-decoration: underline; font-size: 0.875rem; }
-        .user-bar { position: absolute; top: 1rem; right: 1rem; color: #94a3b8; font-size: 0.875rem; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
-        .sign-out { background: #ef4444; color: white; border: none; padding: 0.5rem 1rem; border-radius: 0.375rem; cursor: pointer; font-size: 0.875rem; }
-        h1 { font-size: 2rem; font-weight: 700; color: white; margin-bottom: 0.5rem; margin-top: 2rem; }
-        p { color: #94a3b8; }
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
-        .stat-card { background: rgba(55, 65, 81, 0.5); border: 1px solid rgb(71, 85, 105); padding: 1rem; border-radius: 0.5rem; }
-        .stat-label { color: #94a3b8; font-size: 0.875rem; margin-bottom: 0.25rem; }
-        .stat-value { font-size: 1.5rem; font-weight: 700; color: white; }
-        .stat-subtext { font-size: 0.75rem; color: #64748b; }
-        .tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
-        .tab-btn { padding: 0.5rem 1rem; border-radius: 0.5rem; font-weight: 500; border: none; cursor: pointer; background: rgb(55, 65, 81); color: #cbd5e1; transition: all 0.2s; }
-        .tab-btn.active { background: #2563eb; color: white; }
-        .tab-btn.export { margin-left: auto; }
+
+        /* Animated gradient orbs */
+        body::before, body::after {
+            content: '';
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.4;
+            pointer-events: none;
+            z-index: 0;
+            animation: float 20s ease-in-out infinite;
+        }
+        body::before {
+            width: 600px; height: 600px;
+            background: var(--pink);
+            top: -200px; left: -200px;
+        }
+        body::after {
+            width: 500px; height: 500px;
+            background: var(--cyan);
+            bottom: -150px; right: -150px;
+            animation-delay: -10s;
+        }
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(50px, -30px) scale(1.1); }
+        }
+
+        /* Noise overlay */
+        body > * { position: relative; z-index: 1; }
+
+        .container { max-width: 1400px; margin: 0 auto; }
+
+        /* AUTH SCREEN */
+        .auth-screen { text-align: center; padding: 3rem 1rem; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        
+        .auth-hero {
+            margin-bottom: 3rem;
+        }
+        .auth-hero h1 {
+            font-family: var(--display);
+            font-size: clamp(3rem, 12vw, 7rem);
+            font-weight: 900;
+            line-height: 0.9;
+            letter-spacing: -0.04em;
+            background: linear-gradient(135deg, var(--lime) 0%, var(--cyan) 50%, var(--pink) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+        }
+        .auth-hero .tag {
+            font-family: var(--sticker);
+            font-size: 0.875rem;
+            color: var(--white);
+            background: var(--pink);
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            transform: rotate(-3deg);
+            box-shadow: 4px 4px 0 var(--bg);
+        }
+
+        .auth-form {
+            background: var(--bg-2);
+            border: 3px solid var(--white);
+            padding: 2rem;
+            border-radius: 1.5rem;
+            max-width: 420px;
+            width: 100%;
+            box-shadow: 8px 8px 0 var(--lime);
+            transition: all 0.3s ease;
+        }
+        .auth-form:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 12px 12px 0 var(--lime);
+        }
+        .auth-form h2 {
+            font-family: var(--display);
+            font-weight: 900;
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            letter-spacing: -0.03em;
+        }
+        .auth-input {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            margin-bottom: 1rem;
+            background: var(--bg);
+            border: 2px solid var(--card-border);
+            color: var(--white);
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            font-family: var(--mono);
+            transition: all 0.2s;
+        }
+        .auth-input::placeholder { color: var(--gray); }
+        .auth-input:focus {
+            outline: none;
+            border-color: var(--lime);
+            background: rgba(200, 255, 0, 0.05);
+        }
+        .auth-btn {
+            width: 100%;
+            padding: 1rem;
+            background: var(--lime);
+            color: var(--bg);
+            border: 2px solid var(--bg);
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            cursor: pointer;
+            font-weight: 700;
+            font-family: var(--display);
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+            transition: all 0.2s;
+            box-shadow: 4px 4px 0 var(--white);
+        }
+        .auth-btn:hover:not(:disabled) {
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0 var(--white);
+            background: var(--cyan);
+        }
+        .auth-btn:active:not(:disabled) {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0 var(--white);
+        }
+        .auth-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .auth-toggle {
+            color: var(--cyan);
+            cursor: pointer;
+            text-decoration: underline;
+            font-weight: 700;
+            font-size: 0.875rem;
+        }
+        .auth-toggle:hover { color: var(--pink); }
+
+        /* HEADER */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .header h1 {
+            font-family: var(--display);
+            font-size: clamp(2.5rem, 7vw, 4.5rem);
+            font-weight: 900;
+            line-height: 0.9;
+            letter-spacing: -0.04em;
+            background: linear-gradient(135deg, var(--lime), var(--cyan));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .header .sub {
+            font-family: var(--mono);
+            color: var(--gray);
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+        }
+        .user-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.875rem;
+        }
+        .user-bar span {
+            background: var(--card);
+            padding: 0.5rem 0.875rem;
+            border-radius: 999px;
+            border: 1px solid var(--card-border);
+            font-family: var(--mono);
+        }
+        .sign-out {
+            background: var(--pink);
+            color: var(--white);
+            border: 2px solid var(--bg);
+            padding: 0.5rem 1rem;
+            border-radius: 999px;
+            cursor: pointer;
+            font-family: var(--display);
+            font-weight: 700;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            box-shadow: 3px 3px 0 var(--white);
+            transition: all 0.2s;
+        }
+        .sign-out:hover {
+            transform: translate(-1px, -1px);
+            box-shadow: 4px 4px 0 var(--white);
+        }
+
+        /* BENTO STATS */
+        .stats-bento {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            grid-template-rows: auto;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        @media (max-width: 900px) {
+            .stats-bento {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .stats-bento .stat-card:first-child {
+                grid-column: span 2;
+            }
+        }
+        .stat-card {
+            background: var(--bg-2);
+            border: 2px solid var(--card-border);
+            padding: 1.5rem;
+            border-radius: 1.25rem;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+        .stat-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--white);
+        }
+        .stat-card.hero {
+            background: linear-gradient(135deg, rgba(200,255,0,0.1), rgba(0,240,255,0.1));
+            border-color: var(--lime);
+        }
+        .stat-card.hero::before {
+            content: '';
+            position: absolute;
+            top: -50%; right: -50%;
+            width: 200px; height: 200px;
+            background: var(--lime);
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.3;
+        }
+        .stat-label {
+            font-family: var(--mono);
+            color: var(--gray);
+            font-size: 0.7rem;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            font-weight: 500;
+        }
+        .stat-value {
+            font-family: var(--display);
+            font-size: clamp(1.75rem, 4vw, 2.75rem);
+            font-weight: 900;
+            color: var(--white);
+            line-height: 1;
+            letter-spacing: -0.03em;
+            position: relative;
+            z-index: 1;
+        }
+        .stat-value.lime { color: var(--lime); }
+        .stat-value.pink { color: var(--pink); }
+        .stat-value.cyan { color: var(--cyan); }
+        .stat-subtext {
+            font-family: var(--mono);
+            font-size: 0.875rem;
+            color: var(--gray);
+            margin-top: 0.5rem;
+        }
+        .stat-subtext.lime { color: var(--lime); }
+        .stat-subtext.pink { color: var(--pink); }
+
+        /* TABS */
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .tab-btn {
+            padding: 0.75rem 1.25rem;
+            border-radius: 999px;
+            font-weight: 700;
+            border: 2px solid var(--card-border);
+            cursor: pointer;
+            background: var(--card);
+            color: var(--white);
+            transition: all 0.2s;
+            font-family: var(--display);
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .tab-btn:hover {
+            border-color: var(--cyan);
+            color: var(--cyan);
+        }
+        .tab-btn.active {
+            background: var(--lime);
+            color: var(--bg);
+            border-color: var(--lime);
+        }
+        .tab-btn.export {
+            margin-left: auto;
+            background: transparent;
+            border-color: var(--card-border);
+            color: var(--gray);
+        }
+        .tab-btn.export:hover {
+            border-color: var(--pink);
+            color: var(--pink);
+        }
+
         .content { display: none; }
-        .content.active { display: block; }
-        .form-container { background: rgba(30, 41, 59, 0.5); border: 1px solid rgb(71, 85, 105); padding: 1.5rem; border-radius: 0.5rem; }
-        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
+        .content.active { display: block; animation: slideUp 0.4s ease; }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* FORM */
+        .form-container {
+            background: var(--bg-2);
+            border: 2px solid var(--card-border);
+            padding: 2rem;
+            border-radius: 1.5rem;
+            position: relative;
+        }
+        .form-container::after {
+            content: '✨ new entry';
+            position: absolute;
+            top: -12px;
+            left: 24px;
+            background: var(--lime);
+            color: var(--bg);
+            padding: 0.25rem 0.75rem;
+            font-family: var(--sticker);
+            font-size: 0.7rem;
+            border-radius: 999px;
+            border: 2px solid var(--bg);
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 1.25rem;
+        }
         .form-group { display: flex; flex-direction: column; }
-        label { font-size: 0.875rem; font-weight: 500; color: #cbd5e1; margin-bottom: 0.5rem; }
-        input, select, textarea { background: rgb(55, 65, 81); border: 1px solid rgb(71, 85, 105); padding: 0.5rem 0.75rem; color: white; border-radius: 0.375rem; font-size: 1rem; font-family: inherit; }
-        input:focus, select:focus, textarea:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
-        textarea { resize: vertical; min-height: 5rem; width: 100%; grid-column: 1 / -1; margin-bottom: 1rem; }
-        button { padding: 0.75rem 1rem; border-radius: 0.5rem; border: none; cursor: pointer; font-weight: 600; transition: all 0.2s; }
-        .submit-btn { width: 100%; background: #2563eb; color: white; font-size: 1rem; }
-        .submit-btn:hover { background: #1d4ed8; }
-        .journal-container { background: rgba(30, 41, 59, 0.5); border: 1px solid rgb(71, 85, 105); border-radius: 0.5rem; overflow: hidden; }
-        .empty { padding: 2rem; text-align: center; color: #94a3b8; }
+        label {
+            font-family: var(--mono);
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: var(--gray);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+        }
+        input, select, textarea {
+            background: var(--bg);
+            border: 2px solid var(--card-border);
+            padding: 0.875rem 1rem;
+            color: var(--white);
+            border-radius: 0.75rem;
+            font-size: 0.95rem;
+            font-family: var(--mono);
+            transition: all 0.2s;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--lime);
+            background: rgba(200, 255, 0, 0.03);
+        }
+        textarea {
+            resize: vertical;
+            min-height: 5rem;
+            width: 100%;
+            grid-column: 1 / -1;
+            margin-bottom: 1.25rem;
+        }
+        .submit-btn {
+            width: 100%;
+            background: var(--lime);
+            color: var(--bg);
+            border: 2px solid var(--bg);
+            font-size: 1rem;
+            padding: 1.125rem;
+            border-radius: 0.875rem;
+            cursor: pointer;
+            font-family: var(--display);
+            font-weight: 900;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            box-shadow: 5px 5px 0 var(--white);
+            transition: all 0.2s;
+        }
+        .submit-btn:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 7px 7px 0 var(--white);
+            background: var(--cyan);
+        }
+        .submit-btn:active {
+            transform: translate(2px, 2px);
+            box-shadow: 3px 3px 0 var(--white);
+        }
+
+        /* JOURNAL TABLE */
+        .journal-container {
+            background: var(--bg-2);
+            border: 2px solid var(--card-border);
+            border-radius: 1.5rem;
+            overflow: hidden;
+            position: relative;
+        }
+        .empty {
+            padding: 4rem 2rem;
+            text-align: center;
+        }
+        .empty .emoji {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+        .empty p {
+            font-family: var(--display);
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--gray);
+        }
         .table-wrapper { overflow-x: auto; }
-        table { width: 100%; font-size: 0.875rem; border-collapse: collapse; }
-        thead { background: rgba(55, 65, 81, 0.5); border-bottom: 1px solid rgb(71, 85, 105); }
-        th { padding: 0.75rem; text-align: left; color: #cbd5e1; font-weight: 600; }
-        td { padding: 0.75rem; border-bottom: 1px solid rgb(71, 85, 105); }
-        tbody tr:hover { background: rgba(55, 65, 81, 0.3); }
-        .badge { background: rgba(55, 65, 81, 0.5); padding: 0.25rem 0.5rem; border-radius: 0.375rem; font-size: 0.75rem; display: inline-block; }
-        .badge-call { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
-        .badge-put { background: rgba(248, 113, 113, 0.2); color: #f87171; }
-        .green { color: #4ade80; font-weight: 700; }
-        .red { color: #f87171; font-weight: 700; }
-        .delete-btn { background: none; border: none; color: #f87171; cursor: pointer; font-size: 1.125rem; }
-        .delete-btn:hover { color: #fb7185; }
+        table {
+            width: 100%;
+            font-family: var(--mono);
+            font-size: 0.875rem;
+            border-collapse: collapse;
+        }
+        thead {
+            background: var(--bg);
+        }
+        th {
+            padding: 1rem 0.875rem;
+            text-align: left;
+            color: var(--gray);
+            font-weight: 500;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            border-bottom: 2px solid var(--card-border);
+        }
+        td {
+            padding: 1rem 0.875rem;
+            border-bottom: 1px solid var(--card-border);
+        }
+        tbody tr {
+            transition: background 0.15s;
+        }
+        tbody tr:hover {
+            background: rgba(200, 255, 0, 0.03);
+        }
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .badge {
+            background: var(--card);
+            padding: 0.375rem 0.625rem;
+            border-radius: 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            display: inline-block;
+            border: 1px solid var(--card-border);
+            font-family: var(--mono);
+        }
+        .badge-call {
+            background: rgba(200, 255, 0, 0.15);
+            color: var(--lime);
+            border-color: var(--lime);
+        }
+        .badge-put {
+            background: rgba(255, 0, 110, 0.15);
+            color: var(--pink);
+            border-color: var(--pink);
+        }
+        .badge-setup {
+            background: rgba(0, 240, 255, 0.1);
+            color: var(--cyan);
+            border-color: rgba(0, 240, 255, 0.3);
+            text-transform: uppercase;
+            font-size: 0.7rem;
+            letter-spacing: 0.05em;
+        }
+
+        .pnl-cell {
+            font-family: var(--display);
+            font-weight: 900;
+            font-size: 1rem;
+        }
+        .lime { color: var(--lime); }
+        .pink { color: var(--pink); }
+        .cyan { color: var(--cyan); }
+
+        .win-sticker {
+            display: inline-block;
+            font-family: var(--sticker);
+            font-size: 0.625rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 0.375rem;
+            margin-left: 0.5rem;
+            transform: rotate(-4deg);
+        }
+        .win-sticker.win {
+            background: var(--lime);
+            color: var(--bg);
+        }
+        .win-sticker.loss {
+            background: var(--pink);
+            color: var(--white);
+        }
+
+        .delete-btn {
+            background: transparent;
+            border: 1px solid var(--card-border);
+            color: var(--gray);
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            border-radius: 0.5rem;
+            transition: all 0.15s;
+        }
+        .delete-btn:hover {
+            background: var(--pink);
+            color: var(--white);
+            border-color: var(--pink);
+        }
+
         .hidden { display: none; }
-        .error { color: #f87171; font-size: 0.875rem; margin-top: 0.5rem; }
+        .error {
+            color: var(--pink);
+            font-size: 0.875rem;
+            margin-top: 0.75rem;
+            font-family: var(--mono);
+        }
+
+        /* Mobile */
+        @media (max-width: 640px) {
+            body { padding: 1rem; }
+            .header h1 { font-size: 2.5rem; }
+            .stat-card { padding: 1.125rem; }
+            .form-container { padding: 1.5rem; }
+            .tabs { gap: 0.25rem; }
+            .tab-btn { padding: 0.625rem 1rem; font-size: 0.75rem; }
+            .tab-btn.export { font-size: 0.7rem; padding: 0.5rem 0.75rem; }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--card-border); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--lime); }
+
+        /* Selection */
+        ::selection { background: var(--lime); color: var(--bg); }
     </style>
 </head>
 <body>
+    <!-- AUTH SCREEN -->
     <div id="authScreen" class="auth-screen">
-        <h1>Trading Journal</h1>
-        <p style="margin-bottom: 2rem;">Track stocks & options. Cloud-synced.</p>
+        <div class="auth-hero">
+            <h1>trading<br>journal⚡</h1>
+            <div class="tag">track your edge ✦ stay rich</div>
+        </div>
         
         <div class="auth-form">
-            <h2 id="authTitle" style="margin-bottom: 1.5rem; font-size: 1.25rem;">Sign Up</h2>
-            <input type="email" id="authEmail" class="auth-input" placeholder="Email" autocomplete="email">
-            <input type="password" id="authPassword" class="auth-input" placeholder="Password (min 6 chars)" autocomplete="current-password">
-            <button id="authSubmit" class="auth-btn" onclick="handleAuth()" disabled>Create Account</button>
+            <h2 id="authTitle">sign up 🌀</h2>
+            <input type="email" id="authEmail" class="auth-input" placeholder="your email" autocomplete="email">
+            <input type="password" id="authPassword" class="auth-input" placeholder="password (6+ chars)" autocomplete="current-password">
+            <button id="authSubmit" class="auth-btn" onclick="handleAuth()" disabled>create account →</button>
             <div id="authError" class="error" style="text-align: left;"></div>
-            <div style="text-align: center; margin-top: 1rem;">
-                <p style="color: #94a3b8; margin-bottom: 0.5rem;" id="toggleText">Already have an account?</p>
-                <span class="auth-toggle" onclick="toggleAuthMode()">Sign In</span>
+            <div style="text-align: center; margin-top: 1.25rem; font-family: var(--mono); font-size: 0.875rem; color: var(--gray);">
+                <span id="toggleText">already have an account?</span>
+                <span class="auth-toggle" onclick="toggleAuthMode()">sign in</span>
             </div>
         </div>
-        <p style="margin-top: 2rem; font-size: 0.875rem; color: #64748b;">Initializing...</p>
     </div>
 
+    <!-- APP SCREEN -->
     <div id="appScreen" style="display:none;">
-        <div class="user-bar" id="userBar"></div>
         <div class="container">
-            <h1>Trading Journal</h1>
-            <p>Track every trade. Master your edge.</p>
+            <div class="header">
+                <div>
+                    <h1>journal ⚡</h1>
+                    <p class="sub">→ master your edge</p>
+                </div>
+                <div class="user-bar" id="userBar"></div>
+            </div>
 
-            <div id="stats" class="stats-grid" style="display:none;"></div>
+            <div id="stats" class="stats-bento" style="display:none;"></div>
 
             <div class="tabs">
-                <button class="tab-btn active" onclick="showTab('entry')">+ New Trade</button>
-                <button class="tab-btn" onclick="showTab('journal')">Journal (<span id="trade-count">0</span>)</button>
-                <button class="tab-btn export" onclick="exportCSV()">📥 Export CSV</button>
+                <button class="tab-btn active" onclick="showTab('entry')">+ new trade</button>
+                <button class="tab-btn" onclick="showTab('journal')">journal · <span id="trade-count">0</span></button>
+                <button class="tab-btn export" onclick="exportCSV()">📥 export csv</button>
             </div>
 
             <div id="entry" class="content active">
@@ -105,11 +646,11 @@
                     <form onsubmit="addTrade(event)">
                         <div class="form-grid">
                             <div class="form-group">
-                                <label>Date</label>
+                                <label>date</label>
                                 <input type="date" id="date" required>
                             </div>
                             <div class="form-group">
-                                <label>Asset Type</label>
+                                <label>asset type</label>
                                 <select id="assetType" onchange="updateFormFields()">
                                     <option value="stock">Stock</option>
                                     <option value="call">Call Option</option>
@@ -117,19 +658,19 @@
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label>Symbol</label>
+                                <label>symbol</label>
                                 <input type="text" id="symbol" placeholder="SPY, QQQ" required>
                             </div>
                             <div class="form-group hidden" id="strikeGroup">
-                                <label>Strike Price</label>
+                                <label>strike</label>
                                 <input type="number" id="strikePrice" step="0.01">
                             </div>
                             <div class="form-group hidden" id="expiryGroup">
-                                <label>Expiration Date</label>
+                                <label>expiration</label>
                                 <input type="date" id="expiryDate">
                             </div>
                             <div class="form-group">
-                                <label>Setup Type</label>
+                                <label>setup</label>
                                 <select id="setupType">
                                     <option value="scalp">Scalp (0DTE)</option>
                                     <option value="swing">Swing</option>
@@ -140,27 +681,27 @@
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label>Entry Time</label>
+                                <label>entry time</label>
                                 <input type="time" id="entryTime" value="09:30">
                             </div>
                             <div class="form-group">
-                                <label>Entry Price</label>
+                                <label>entry price</label>
                                 <input type="number" id="entryPrice" step="0.01" required>
                             </div>
                             <div class="form-group">
-                                <label>Exit Time</label>
+                                <label>exit time</label>
                                 <input type="time" id="exitTime" value="16:00">
                             </div>
                             <div class="form-group">
-                                <label>Exit Price</label>
+                                <label>exit price</label>
                                 <input type="number" id="exitPrice" step="0.01" required>
                             </div>
                             <div class="form-group">
-                                <label id="qtyLabel">Quantity (Shares)</label>
+                                <label id="qtyLabel">qty (shares)</label>
                                 <input type="number" id="quantity" step="1" required>
                             </div>
                             <div class="form-group">
-                                <label>Platform</label>
+                                <label>platform</label>
                                 <select id="platform">
                                     <option value="robinhood">Robinhood</option>
                                     <option value="webull">Webull</option>
@@ -170,10 +711,10 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label>Notes</label>
-                            <textarea id="notes" placeholder="What did you notice?"></textarea>
+                            <label>notes</label>
+                            <textarea id="notes" placeholder="what did you notice? mood, setup, learnings..."></textarea>
                         </div>
-                        <button type="submit" class="submit-btn">Save Trade</button>
+                        <button type="submit" class="submit-btn">save trade ⚡</button>
                     </form>
                 </div>
             </div>
@@ -195,7 +736,6 @@
         let isSignUpMode = true
 
         async function initAuth() {
-            // Check for existing session
             const token = localStorage.getItem('sb_token')
             const userId = localStorage.getItem('sb_user_id')
             const userEmail = localStorage.getItem('sb_user_email')
@@ -209,7 +749,7 @@
         }
 
         function showAuthScreen() {
-            document.getElementById('authScreen').style.display = 'block'
+            document.getElementById('authScreen').style.display = 'flex'
             document.getElementById('appScreen').style.display = 'none'
         }
 
@@ -218,7 +758,7 @@
             document.getElementById('appScreen').style.display = 'block'
             document.getElementById('userBar').innerHTML = `
                 <span>${currentUser.email}</span>
-                <button class="sign-out" onclick="signOut()">Sign out</button>
+                <button class="sign-out" onclick="signOut()">logout</button>
             `
             setToday()
             loadTrades()
@@ -226,10 +766,10 @@
 
         function toggleAuthMode() {
             isSignUpMode = !isSignUpMode
-            document.getElementById('authTitle').textContent = isSignUpMode ? 'Sign Up' : 'Sign In'
-            document.getElementById('authSubmit').textContent = isSignUpMode ? 'Create Account' : 'Sign In'
-            document.getElementById('toggleText').textContent = isSignUpMode ? 'Already have an account?' : 'Need an account?'
-            document.querySelector('.auth-toggle').textContent = isSignUpMode ? 'Sign In' : 'Sign Up'
+            document.getElementById('authTitle').textContent = isSignUpMode ? 'sign up 🌀' : 'sign in 🔓'
+            document.getElementById('authSubmit').textContent = isSignUpMode ? 'create account →' : 'sign in →'
+            document.getElementById('toggleText').textContent = isSignUpMode ? 'already have an account?' : 'need an account?'
+            document.querySelector('.auth-toggle').textContent = isSignUpMode ? 'sign in' : 'sign up'
             document.getElementById('authError').textContent = ''
         }
 
@@ -240,17 +780,17 @@
             const btn = document.getElementById('authSubmit')
 
             if (!email || !password) {
-                errorEl.textContent = 'Email and password required'
+                errorEl.textContent = 'email and password required'
                 return
             }
 
             if (password.length < 6) {
-                errorEl.textContent = 'Password must be at least 6 characters'
+                errorEl.textContent = 'password must be at least 6 characters'
                 return
             }
 
             btn.disabled = true
-            errorEl.textContent = 'Processing...'
+            errorEl.textContent = 'processing...'
 
             try {
                 const url = isSignUpMode 
@@ -263,16 +803,10 @@
                         'Content-Type': 'application/json',
                         'apikey': SUPABASE_KEY
                     },
-                    body: JSON.stringify({
-                        email,
-                        password
-                    })
+                    body: JSON.stringify({ email, password })
                 })
 
                 const data = await response.json()
-                console.log('Auth response:', data)
-
-                // Sign up returns session.access_token, sign in returns access_token directly
                 const accessToken = data.session?.access_token || data.access_token
                 const user = data.user
 
@@ -281,18 +815,16 @@
                     localStorage.setItem('sb_token', accessToken)
                     localStorage.setItem('sb_user_id', user.id)
                     localStorage.setItem('sb_user_email', user.email)
-                    
                     errorEl.textContent = ''
                     document.getElementById('authEmail').value = ''
                     document.getElementById('authPassword').value = ''
-                    
                     showAppScreen()
                 } else {
-                    errorEl.textContent = data.error_description || data.msg || data.message || 'Authentication failed'
+                    errorEl.textContent = data.error_description || data.msg || data.message || 'authentication failed'
                     btn.disabled = false
                 }
             } catch (err) {
-                errorEl.textContent = 'Network error: ' + err.message
+                errorEl.textContent = 'network error: ' + err.message
                 btn.disabled = false
             }
         }
@@ -313,44 +845,32 @@
             const assetType = document.getElementById('assetType').value
             document.getElementById('strikeGroup').classList.toggle('hidden', assetType === 'stock')
             document.getElementById('expiryGroup').classList.toggle('hidden', assetType === 'stock')
-            document.getElementById('qtyLabel').textContent = assetType === 'stock' ? 'Quantity (Shares)' : 'Quantity (Contracts)'
+            document.getElementById('qtyLabel').textContent = assetType === 'stock' ? 'qty (shares)' : 'qty (contracts)'
         }
 
         async function loadTrades() {
             if (!currentUser) return
-            
             const token = localStorage.getItem('sb_token')
             if (!token) return
 
             try {
                 const response = await fetch(
                     `${SUPABASE_URL}/rest/v1/trades?user_id=eq.${currentUser.id}&order=date.desc`,
-                    {
-                        headers: {
-                            'apikey': SUPABASE_KEY,
-                            'Authorization': `Bearer ${token}`
-                        }
-                    }
+                    { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } }
                 )
-
-                if (response.status === 401) {
-                    signOut()
-                    return
-                }
-
+                if (response.status === 401) { signOut(); return }
                 const data = await response.json()
                 trades = Array.isArray(data) ? data : []
                 document.getElementById('trade-count').textContent = trades.length
                 renderJournal()
             } catch (err) {
-                console.error('Error loading trades:', err)
+                console.error('Load error:', err)
             }
         }
 
         async function addTrade(e) {
             e.preventDefault()
             if (!currentUser) return
-
             const token = localStorage.getItem('sb_token')
             if (!token) return
 
@@ -388,7 +908,8 @@
                     headers: {
                         'Content-Type': 'application/json',
                         'apikey': SUPABASE_KEY,
-                        'Authorization': `Bearer ${token}`
+                        'Authorization': `Bearer ${token}`,
+                        'Prefer': 'return=representation'
                     },
                     body: JSON.stringify(trade)
                 })
@@ -399,7 +920,13 @@
                     await loadTrades()
                     showTab('journal')
                 } else {
-                    alert('Error: ' + response.statusText)
+                    const errorText = await response.text()
+                    let errorMsg = errorText
+                    try {
+                        const errorJson = JSON.parse(errorText)
+                        errorMsg = errorJson.message || errorJson.error || errorJson.hint || errorJson.details || errorText
+                    } catch (e) {}
+                    alert(`Error (${response.status}): ${errorMsg}`)
                 }
             } catch (err) {
                 alert('Error: ' + err.message)
@@ -407,23 +934,16 @@
         }
 
         async function deleteTrade(id) {
-            if (!confirm('Delete this trade?')) return
-
+            if (!confirm('delete this trade?')) return
             const token = localStorage.getItem('sb_token')
             if (!token) return
 
             try {
                 const response = await fetch(`${SUPABASE_URL}/rest/v1/trades?id=eq.${id}`, {
                     method: 'DELETE',
-                    headers: {
-                        'apikey': SUPABASE_KEY,
-                        'Authorization': `Bearer ${token}`
-                    }
+                    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
                 })
-
-                if (response.ok) {
-                    await loadTrades()
-                }
+                if (response.ok) await loadTrades()
             } catch (err) {
                 alert('Error: ' + err.message)
             }
@@ -442,7 +962,7 @@
         function renderJournal() {
             const container = document.getElementById('journal-content')
             if (trades.length === 0) {
-                container.innerHTML = '<div class="empty"><p>No trades yet. Start logging!</p></div>'
+                container.innerHTML = '<div class="empty"><span class="emoji">📊</span><p>no trades yet<br>start logging ⚡</p></div>'
                 document.getElementById('stats').style.display = 'none'
                 return
             }
@@ -454,27 +974,53 @@
             const bestTrade = Math.max(...trades.map(t => t.pnl)).toFixed(2)
             const worstTrade = Math.min(...trades.map(t => t.pnl)).toFixed(2)
 
+            const pnlColor = totalPnL >= 0 ? 'lime' : 'pink'
+            const avgColor = avgPnL >= 0 ? 'lime' : 'pink'
+
             document.getElementById('stats').innerHTML = `
-                <div class="stat-card"><div class="stat-label">Win Rate</div><div class="stat-value">${winRate}%</div><div class="stat-subtext">${wins}W / ${trades.length - wins}L</div></div>
-                <div class="stat-card"><div class="stat-label">Total P&L</div><div class="stat-value ${totalPnL >= 0 ? 'green' : 'red'}">$${totalPnL}</div></div>
-                <div class="stat-card"><div class="stat-label">Avg Trade</div><div class="stat-value ${avgPnL >= 0 ? 'green' : 'red'}">$${avgPnL}</div></div>
-                <div class="stat-card"><div class="stat-label">Best / Worst</div><div class="stat-subtext green">$${bestTrade}</div><div class="stat-subtext red">$${worstTrade}</div></div>
+                <div class="stat-card hero">
+                    <div class="stat-label">total p&l</div>
+                    <div class="stat-value ${pnlColor}">${totalPnL >= 0 ? '+' : ''}$${totalPnL}</div>
+                    <div class="stat-subtext">${trades.length} trades logged</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">win rate</div>
+                    <div class="stat-value cyan">${winRate}%</div>
+                    <div class="stat-subtext"><span class="lime">${wins}W</span> · <span class="pink">${trades.length - wins}L</span></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">avg trade</div>
+                    <div class="stat-value ${avgColor}">${avgPnL >= 0 ? '+' : ''}$${avgPnL}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">best · worst</div>
+                    <div style="display:flex; flex-direction:column; gap:0.25rem;">
+                        <span class="stat-subtext lime" style="font-size:1rem; font-weight:700;">+$${bestTrade}</span>
+                        <span class="stat-subtext pink" style="font-size:1rem; font-weight:700;">$${worstTrade}</span>
+                    </div>
+                </div>
             `
             document.getElementById('stats').style.display = 'grid'
 
-            let html = '<div class="table-wrapper"><table><thead><tr><th>Date</th><th>Asset</th><th>Entry</th><th>Exit</th><th>Qty</th><th>Setup</th><th style="text-align:right;">P&L</th><th>Notes</th><th style="text-align:center;">Delete</th></tr></thead><tbody>'
+            let html = '<div class="table-wrapper"><table><thead><tr><th>date</th><th>asset</th><th>entry</th><th>exit</th><th>qty</th><th>setup</th><th style="text-align:right;">p&l</th><th>notes</th><th></th></tr></thead><tbody>'
             trades.forEach(t => {
                 const qty = t.asset_type === 'stock' ? `${t.quantity} sh` : `${t.quantity} ct`
+                const sticker = t.won 
+                    ? '<span class="win-sticker win">W</span>' 
+                    : '<span class="win-sticker loss">L</span>'
                 html += `<tr>
-                    <td>${t.date}</td>
+                    <td style="white-space:nowrap;">${t.date}</td>
                     <td>${getAssetDisplay(t)}</td>
-                    <td>$${t.entry_price.toFixed(2)} @ ${t.entry_time}</td>
-                    <td>$${t.exit_price.toFixed(2)} @ ${t.exit_time}</td>
+                    <td>$${t.entry_price.toFixed(2)}<br><span style="color:var(--gray);font-size:0.7rem;">${t.entry_time}</span></td>
+                    <td>$${t.exit_price.toFixed(2)}<br><span style="color:var(--gray);font-size:0.7rem;">${t.exit_time}</span></td>
                     <td>${qty}</td>
-                    <td><span class="badge">${t.setup_type}</span></td>
-                    <td style="text-align:right;" class="${t.pnl >= 0 ? 'green' : 'red'}">$${t.pnl.toFixed(2)} (${t.pnl_percent}%)</td>
-                    <td style="font-size:0.75rem;color:#94a3b8;max-width:100px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${t.notes}</td>
-                    <td style="text-align:center;"><button class="delete-btn" onclick="deleteTrade('${t.id}')">🗑️</button></td>
+                    <td><span class="badge badge-setup">${t.setup_type}</span></td>
+                    <td style="text-align:right;white-space:nowrap;">
+                        <span class="pnl-cell ${t.pnl >= 0 ? 'lime' : 'pink'}">${t.pnl >= 0 ? '+' : ''}$${t.pnl.toFixed(2)}</span>${sticker}
+                        <br><span style="color:var(--gray);font-size:0.7rem;">${t.pnl_percent}%</span>
+                    </td>
+                    <td style="font-size:0.75rem;color:var(--gray);max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${t.notes || '—'}</td>
+                    <td><button class="delete-btn" onclick="deleteTrade('${t.id}')">×</button></td>
                 </tr>`
             })
             html += '</tbody></table></div>'
@@ -483,7 +1029,7 @@
 
         function exportCSV() {
             if (trades.length === 0) {
-                alert('No trades to export')
+                alert('no trades to export')
                 return
             }
             const headers = ['Date', 'Asset Type', 'Symbol', 'Strike', 'Expiry', 'Entry Time', 'Entry Price', 'Exit Time', 'Exit Price', 'Quantity', 'P&L', 'P&L %', 'Setup', 'Platform', 'Notes']
@@ -509,7 +1055,6 @@
             document.getElementById('date').valueAsDate = new Date()
         }
 
-        // Initialize on page load
         window.addEventListener('load', initAuth)
     </script>
 </body>

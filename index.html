@@ -2,10 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Trading Journal</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; }
         body { 
             background: linear-gradient(to bottom right, #0f172a, #1e293b, #0f172a);
             color: #e2e8f0;
@@ -14,14 +15,18 @@
             padding: 1rem;
         }
         .container { max-width: 1280px; margin: 0 auto; }
-        .auth-screen { text-align: center; padding: 4rem 1rem; }
-        .auth-btn { padding: 1rem 2rem; background: #2563eb; color: white; border: none; border-radius: 0.5rem; font-size: 1rem; cursor: pointer; font-weight: 600; margin: 0.5rem; }
-        .auth-btn:hover { background: #1d4ed8; }
-        .user-bar { position: absolute; top: 1rem; right: 1rem; color: #94a3b8; font-size: 0.875rem; display: flex; align-items: center; gap: 1rem; }
+        .auth-screen { text-align: center; padding: 2rem 1rem; }
+        .auth-form { background: rgba(30, 41, 59, 0.5); border: 1px solid rgb(71, 85, 105); padding: 2rem; border-radius: 0.5rem; max-width: 400px; margin: 2rem auto; }
+        .auth-input { width: 100%; padding: 0.75rem; margin-bottom: 1rem; background: rgb(55, 65, 81); border: 1px solid rgb(71, 85, 105); color: white; border-radius: 0.375rem; font-size: 1rem; }
+        .auth-input::placeholder { color: #94a3b8; }
+        .auth-btn { width: 100%; padding: 0.75rem 1rem; background: #2563eb; color: white; border: none; border-radius: 0.5rem; font-size: 1rem; cursor: pointer; font-weight: 600; margin-bottom: 0.5rem; }
+        .auth-btn:hover:not(:disabled) { background: #1d4ed8; }
+        .auth-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .auth-toggle { color: #60a5fa; cursor: pointer; text-decoration: underline; font-size: 0.875rem; }
+        .user-bar { position: absolute; top: 1rem; right: 1rem; color: #94a3b8; font-size: 0.875rem; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
         .sign-out { background: #ef4444; color: white; border: none; padding: 0.5rem 1rem; border-radius: 0.375rem; cursor: pointer; font-size: 0.875rem; }
         h1 { font-size: 2rem; font-weight: 700; color: white; margin-bottom: 0.5rem; margin-top: 2rem; }
         p { color: #94a3b8; }
-        .banner { background: rgba(37, 99, 235, 0.2); border: 1px solid rgba(37, 99, 235, 0.5); color: #60a5fa; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1.5rem; font-size: 0.875rem; }
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
         .stat-card { background: rgba(55, 65, 81, 0.5); border: 1px solid rgb(71, 85, 105); padding: 1rem; border-radius: 0.5rem; }
         .stat-label { color: #94a3b8; font-size: 0.875rem; margin-bottom: 0.25rem; }
@@ -59,17 +64,26 @@
         .delete-btn { background: none; border: none; color: #f87171; cursor: pointer; font-size: 1.125rem; }
         .delete-btn:hover { color: #fb7185; }
         .hidden { display: none; }
+        .error { color: #f87171; font-size: 0.875rem; margin-top: 0.5rem; }
     </style>
 </head>
 <body>
     <div id="authScreen" class="auth-screen">
         <h1>Trading Journal</h1>
-        <p style="margin-bottom: 2rem;">Track stocks & options. Cloud-synced via Supabase.</p>
-        <div>
-            <button class="auth-btn" onclick="signUpEmail()">📧 Sign Up (Email)</button>
-            <button class="auth-btn" onclick="signInEmail()">🔐 Sign In (Email)</button>
+        <p style="margin-bottom: 2rem;">Track stocks & options. Cloud-synced.</p>
+        
+        <div class="auth-form">
+            <h2 id="authTitle" style="margin-bottom: 1.5rem; font-size: 1.25rem;">Sign Up</h2>
+            <input type="email" id="authEmail" class="auth-input" placeholder="Email" autocomplete="email">
+            <input type="password" id="authPassword" class="auth-input" placeholder="Password (min 6 chars)" autocomplete="current-password">
+            <button id="authSubmit" class="auth-btn" onclick="handleAuth()" disabled>Create Account</button>
+            <div id="authError" class="error" style="text-align: left;"></div>
+            <div style="text-align: center; margin-top: 1rem;">
+                <p style="color: #94a3b8; margin-bottom: 0.5rem;" id="toggleText">Already have an account?</p>
+                <span class="auth-toggle" onclick="toggleAuthMode()">Sign In</span>
+            </div>
         </div>
-        <p id="authMsg" style="margin-top: 1rem; color: #60a5fa;"></p>
+        <p style="margin-top: 2rem; font-size: 0.875rem; color: #64748b;">Initializing...</p>
     </div>
 
     <div id="appScreen" style="display:none;">
@@ -77,10 +91,6 @@
         <div class="container">
             <h1>Trading Journal</h1>
             <p>Track every trade. Master your edge.</p>
-            
-            <div class="banner">
-                ☁️ Cloud-synced to Supabase. Access from any device. Your trades are secure.
-            </div>
 
             <div id="stats" class="stats-grid" style="display:none;"></div>
 
@@ -182,8 +192,21 @@
 
         let currentUser = null
         let trades = []
-        let sessionToken = localStorage.getItem('sb_session')
-        let userId = localStorage.getItem('sb_user_id')
+        let isSignUpMode = true
+
+        async function initAuth() {
+            // Check for existing session
+            const token = localStorage.getItem('sb_token')
+            const userId = localStorage.getItem('sb_user_id')
+            const userEmail = localStorage.getItem('sb_user_email')
+
+            if (token && userId) {
+                currentUser = { id: userId, email: userEmail }
+                showAppScreen()
+            } else {
+                document.getElementById('authSubmit').disabled = false
+            }
+        }
 
         function showAuthScreen() {
             document.getElementById('authScreen').style.display = 'block'
@@ -193,78 +216,88 @@
         function showAppScreen() {
             document.getElementById('authScreen').style.display = 'none'
             document.getElementById('appScreen').style.display = 'block'
+            document.getElementById('userBar').innerHTML = `
+                <span>${currentUser.email}</span>
+                <button class="sign-out" onclick="signOut()">Sign out</button>
+            `
             setToday()
             loadTrades()
         }
 
-        async function signUpEmail() {
-            const email = prompt('Enter email:')
-            if (!email) return
-            const password = prompt('Enter password (min 6 chars):')
-            if (!password || password.length < 6) {
-                alert('Password must be at least 6 characters')
+        function toggleAuthMode() {
+            isSignUpMode = !isSignUpMode
+            document.getElementById('authTitle').textContent = isSignUpMode ? 'Sign Up' : 'Sign In'
+            document.getElementById('authSubmit').textContent = isSignUpMode ? 'Create Account' : 'Sign In'
+            document.getElementById('toggleText').textContent = isSignUpMode ? 'Already have an account?' : 'Need an account?'
+            document.querySelector('.auth-toggle').textContent = isSignUpMode ? 'Sign In' : 'Sign Up'
+            document.getElementById('authError').textContent = ''
+        }
+
+        async function handleAuth() {
+            const email = document.getElementById('authEmail').value
+            const password = document.getElementById('authPassword').value
+            const errorEl = document.getElementById('authError')
+            const btn = document.getElementById('authSubmit')
+
+            if (!email || !password) {
+                errorEl.textContent = 'Email and password required'
                 return
             }
 
-            try {
-                const res = await fetch(`${SUPABASE_URL}/auth/v1/signup`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY },
-                    body: JSON.stringify({ email, password })
-                })
-                const data = await res.json()
-                if (data.user) {
-                    currentUser = data.user
-                    userId = data.user.id
-                    sessionToken = data.session.access_token
-                    localStorage.setItem('sb_session', sessionToken)
-                    localStorage.setItem('sb_user_id', userId)
-                    document.getElementById('userBar').innerHTML = `<span>${email}</span><button class="sign-out" onclick="signOut()">Sign out</button>`
-                    showAppScreen()
-                } else {
-                    alert('Sign up failed: ' + (data.message || 'Unknown error'))
-                }
-            } catch (err) {
-                alert('Error: ' + err.message)
+            if (password.length < 6) {
+                errorEl.textContent = 'Password must be at least 6 characters'
+                return
             }
-        }
 
-        async function signInEmail() {
-            const email = prompt('Enter email:')
-            if (!email) return
-            const password = prompt('Enter password:')
-            if (!password) return
+            btn.disabled = true
+            errorEl.textContent = 'Processing...'
 
             try {
-                const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+                const endpoint = isSignUpMode ? 'signup' : 'signin'
+                const response = await fetch(`${SUPABASE_URL}/auth/v1/${endpoint}`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY },
-                    body: JSON.stringify({ email, password })
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'apikey': SUPABASE_KEY
+                    },
+                    body: JSON.stringify({
+                        email,
+                        password
+                    })
                 })
-                const data = await res.json()
-                if (data.access_token) {
+
+                const data = await response.json()
+
+                if (response.ok && data.session) {
                     currentUser = data.user
-                    userId = data.user.id
-                    sessionToken = data.access_token
-                    localStorage.setItem('sb_session', sessionToken)
-                    localStorage.setItem('sb_user_id', userId)
-                    document.getElementById('userBar').innerHTML = `<span>${email}</span><button class="sign-out" onclick="signOut()">Sign out</button>`
+                    localStorage.setItem('sb_token', data.session.access_token)
+                    localStorage.setItem('sb_user_id', data.user.id)
+                    localStorage.setItem('sb_user_email', data.user.email)
+                    
+                    errorEl.textContent = ''
+                    document.getElementById('authEmail').value = ''
+                    document.getElementById('authPassword').value = ''
+                    
                     showAppScreen()
                 } else {
-                    alert('Sign in failed: ' + (data.error_description || 'Invalid credentials'))
+                    errorEl.textContent = data.error_description || data.message || 'Authentication failed'
+                    btn.disabled = false
                 }
             } catch (err) {
-                alert('Error: ' + err.message)
+                errorEl.textContent = 'Network error: ' + err.message
+                btn.disabled = false
             }
         }
 
         function signOut() {
-            currentUser = null
-            sessionToken = null
-            userId = null
-            localStorage.removeItem('sb_session')
+            localStorage.removeItem('sb_token')
             localStorage.removeItem('sb_user_id')
+            localStorage.removeItem('sb_user_email')
+            currentUser = null
             trades = []
+            document.getElementById('authEmail').value = ''
+            document.getElementById('authPassword').value = ''
+            document.getElementById('authError').textContent = ''
             showAuthScreen()
         }
 
@@ -276,29 +309,42 @@
         }
 
         async function loadTrades() {
-            if (!sessionToken || !userId) return
+            if (!currentUser) return
+            
+            const token = localStorage.getItem('sb_token')
+            if (!token) return
+
             try {
-                const res = await fetch(`${SUPABASE_URL}/rest/v1/trades?user_id=eq.${userId}&order=date.desc`, {
-                    headers: {
-                        'apikey': SUPABASE_KEY,
-                        'Authorization': `Bearer ${sessionToken}`
+                const response = await fetch(
+                    `${SUPABASE_URL}/rest/v1/trades?user_id=eq.${currentUser.id}&order=date.desc`,
+                    {
+                        headers: {
+                            'apikey': SUPABASE_KEY,
+                            'Authorization': `Bearer ${token}`
+                        }
                     }
-                })
-                const data = await res.json()
+                )
+
+                if (response.status === 401) {
+                    signOut()
+                    return
+                }
+
+                const data = await response.json()
                 trades = Array.isArray(data) ? data : []
                 document.getElementById('trade-count').textContent = trades.length
                 renderJournal()
             } catch (err) {
-                console.error('Load error:', err)
+                console.error('Error loading trades:', err)
             }
         }
 
         async function addTrade(e) {
             e.preventDefault()
-            if (!sessionToken || !userId) {
-                alert('Please sign in first')
-                return
-            }
+            if (!currentUser) return
+
+            const token = localStorage.getItem('sb_token')
+            if (!token) return
 
             const entry = parseFloat(document.getElementById('entryPrice').value)
             const exit = parseFloat(document.getElementById('exitPrice').value)
@@ -309,7 +355,7 @@
             const pnlPercent = ((exit - entry) / entry * 100).toFixed(2)
 
             const trade = {
-                user_id: userId,
+                user_id: currentUser.id,
                 date: document.getElementById('date').value,
                 asset_type: assetType,
                 symbol: document.getElementById('symbol').value,
@@ -329,23 +375,23 @@
             }
 
             try {
-                const res = await fetch(`${SUPABASE_URL}/rest/v1/trades`, {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/trades`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'apikey': SUPABASE_KEY,
-                        'Authorization': `Bearer ${sessionToken}`
+                        'Authorization': `Bearer ${token}`
                     },
                     body: JSON.stringify(trade)
                 })
-                if (res.ok) {
+
+                if (response.ok) {
                     e.target.reset()
                     setToday()
                     await loadTrades()
                     showTab('journal')
                 } else {
-                    const error = await res.json()
-                    alert('Error saving trade: ' + (error.message || res.statusText))
+                    alert('Error: ' + response.statusText)
                 }
             } catch (err) {
                 alert('Error: ' + err.message)
@@ -353,21 +399,22 @@
         }
 
         async function deleteTrade(id) {
-            if (!sessionToken) return
             if (!confirm('Delete this trade?')) return
 
+            const token = localStorage.getItem('sb_token')
+            if (!token) return
+
             try {
-                const res = await fetch(`${SUPABASE_URL}/rest/v1/trades?id=eq.${id}`, {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/trades?id=eq.${id}`, {
                     method: 'DELETE',
                     headers: {
                         'apikey': SUPABASE_KEY,
-                        'Authorization': `Bearer ${sessionToken}`
+                        'Authorization': `Bearer ${token}`
                     }
                 })
-                if (res.ok) {
+
+                if (response.ok) {
                     await loadTrades()
-                } else {
-                    alert('Error deleting')
                 }
             } catch (err) {
                 alert('Error: ' + err.message)
@@ -454,12 +501,8 @@
             document.getElementById('date').valueAsDate = new Date()
         }
 
-        // Check if already logged in
-        if (sessionToken && userId) {
-            showAppScreen()
-        } else {
-            showAuthScreen()
-        }
+        // Initialize on page load
+        window.addEventListener('load', initAuth)
     </script>
 </body>
 </html>
